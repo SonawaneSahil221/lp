@@ -1,0 +1,46 @@
+#include <omp.h>
+#include <iostream>
+#include <chrono>
+#include <algorithm>
+using namespace std;
+using namespace std::chrono;
+void performOperations(int nums[], int length) {
+    int minValue = nums[0], maxValue = nums[0], sum = 0;
+
+#pragma omp parallel for reduction(min : minValue) reduction(max : maxValue) reduction(+ : sum)
+    for (int i = 0; i < length; i++) {
+        minValue = min(minValue, nums[i]);
+        maxValue = max(maxValue, nums[i]);
+        sum += nums[i];
+    }
+    cout << "Min value: " << minValue << endl;
+    cout << "Max value: " << maxValue << endl;
+    cout << "Sum: " << sum << endl;
+    cout << "Average: " << static_cast<float>(sum) / length << endl;
+}
+int main() {
+    int length;
+    cout << "Enter the number of elements: ";
+    cin >> length;
+
+    int* nums = new int[length];
+    cout << "Enter " << length << " elements:\n";
+    for (int i = 0; i < length; i++) {
+        cin >> nums[i];
+    }
+
+    auto start = high_resolution_clock::now();
+
+    cout << "\nNums: [";
+    for (int i = 0; i < length; i++) 
+        cout << nums[i] << (i < length - 1 ? ", " : "");
+    cout << "]\n";
+
+    performOperations(nums, length);
+
+    auto stop = high_resolution_clock::now();
+    cout << "\nExecution time: " << duration_cast<microseconds>(stop - start).count() << " microseconds\n";
+
+    delete[] nums;
+    return 0;
+}
